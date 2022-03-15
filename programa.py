@@ -41,7 +41,7 @@ if __name__ == "__main__":
     f=2.46*10**9 ; Er= 4.3 ; h= 1.56 ; t= 0.0035 ; c= 59600000 ; tan= 0.001 ; zo= 50 ; l= 2
     linea= MicrostripLine(f,Er,h,t,l,c,tan,zo)
     print("Permitividad efectiva= ","{0:.3f}".format(linea.permitividadEfectiva()))
-    print("Impedancia caracteristica= ","{0:.3f}".format(linea.impedanciaCaracteristica()))
-    print("Capacitancia asociada= ","{0:.3f}".format(linea.capacitanciaAsociada()))
-    print("Perdidas debido al conductor","{0:.3f}".format(linea.perdidasConductor()))
-    print("Perdidas debido al dielectrico= ","{0:.3f}".format(linea.perdidasDielectrico()[0]))
+    print("Impedancia caracteristica= ","{0:.3f}".format(linea.impedanciaCaracteristica()),'Ω')
+    print("Capacitancia asociada= ",format(linea.capacitanciaAsociada(),'.1E'))
+    print("Perdidas debido al conductor","{0:.3f}".format(linea.perdidasConductor()),'dB')
+    print("Perdidas debido al dielectrico= ",format(linea.perdidasDielectrico()[1],'.1E'),'dB')
