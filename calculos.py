@@ -1,4 +1,4 @@
-from numpy import rad2deg
+from numpy import deg2rad,rad2deg
 from math import sqrt, pi, exp, log
 
 
@@ -8,31 +8,32 @@ class Line:
         self.f = f
         self.Er = Er
         self.h = h
-        self.lg=self.ondaGuiada()
         self.t= t
         self.c= 3*10**8
         self.l= l
-        self.mu = 1
+        self.mu = 4*pi*10**-7
         self.conductividad= conductividad
         self.tanPerdidas= tan
         self.zo= zo
-        self.w= 0
         self.eta= 120*pi #Impedancia de la onda en el espacio libre
-        self.beta= 2*pi/self.ondaGuiada()
+        
         
     def longitudElectrica(self):
-        if self.l == self.lg /4:
-            return pi/2
-        elif self.l== self.g/2:
-            return pi
+        return pi/(2*self.beta())
+        
+            
     def ondaGuiada(self):
-        return 300*10**8/(self.f*sqrt(self.Er))
+        return 3*10**8/(self.f*sqrt(self.Er))
     def ApproximateW(self):
         A = self.zo/60*((self.Er+1)/2)**0.5+(self.Er-1)/(self.Er+1)*0.23+0.11/self.Er
         W = (8*exp(A)*self.h)/(exp(2*A)-2)
         return W
-    def Approximatel(self,deg):
-        return rad2deg(deg)*self.guidedWave()/(2*pi)
+    def Approximatel(self):
+        return rad2deg(self.l)*self.ondaGuiada()/(2*pi)
+    def beta(self):
+        return 2*pi/0.059
+    def velocidadPropagacion(self):
+        return self.c/sqrt(self.permitividadEfectiva())
     
 class Stripline(Line):
     
@@ -48,7 +49,7 @@ class MicrostripLine(Line):
         return sqrt((2*pi*self.f*self.mu)/(2*self.conductividad))
     
     def ko(self):
-        return self.beta/sqrt(self.permitividadEfectiva())
+        return self.beta()/sqrt(self.permitividadEfectiva())
     
     def permitividadEfectiva(self):
         w= self.ApproximateW()
@@ -66,16 +67,21 @@ class MicrostripLine(Line):
             zc= self.eta/sqrt(self.permitividadEfectiva())*((w/self.h)+1.393+0.677*log((w/self.h)+1.444))**-1
         return zc
     
-    def velocidadPropagacion(self):
-        return self.c/sqrt(self.permitividadEfectiva())
+    
     
     def capacitanciaAsociada(self):
         w= self.ApproximateW()
+        wh= self.ApproximateW()/self.h
         if w/self.h <=1:
             capacitancia= self.permitividadEfectiva()/(60*self.c*log(8*self.h/w+w/(4*self.h)))
         else:
-            capacitancia= (self.permitividadEfectiva()*self.l*(self.w/self.h+1.393+0.667*log(self.w/self.h+1.444)))/120*pi*self.c
-        return capacitancia
+            cap= self.permitividadEfectiva()*self.longitudElectrica()
+            ci = (wh+1.393+0.667)
+            tanc= log(wh+1.444)
+            div= 120*pi*3*10**8
+            capacitancia= (cap*(ci*tanc))/(120*pi*3*10**8)
+
+        return capacitancia, cap, ci, tanc,div
 
     def perdidasConductor(self):
         w= self.ApproximateW()
@@ -83,7 +89,7 @@ class MicrostripLine(Line):
     
     def perdidasDielectrico(self):
         alfaNp= (self.ko()*self.Er*(self.permitividadEfectiva()-1)*self.tanPerdidas)/(2*sqrt(self.Er)*(self.permitividadEfectiva()-1))
-        alfadB= 8.686*pi*(self.permitividadEfectiva()-1)/(self.permitividadEfectiva()-1)*self.Er/(self.permitividadEfectiva())*self.tanPerdidas/self.lg
+        alfadB= 8.686*pi*(self.permitividadEfectiva()-1)/(self.Er-1)*self.Er/(self.permitividadEfectiva())*self.tanPerdidas/self.ondaGuiada()
         return alfaNp, alfadB
 
 
